@@ -68,7 +68,7 @@ def obtener_Equipo(nombre_equipo, liga_link):
     for fila in filas_resultados:
         # Extrae las columnas
         clubs = fila.find_all('th')[0].text.strip()
-        if nombre_equipo.capitalize() in clubs:
+        if nombre_equipo.lower() in clubs.lower():
             equipo = clubs
             print(equipo)
             club_id = fila.find_next('a')['href'][11:19]
@@ -112,13 +112,14 @@ def obtener_datos_equipo(nombre_equipo, nombre_pais):
             # Extraer la fecha
             fecha = fila.find('th').text.strip()
 
+            """
             # Eliminar la bandera a los equipos
             if (columnas[8].text.strip()[2] == ' '):
                 oponente = columnas[8].text.strip()[3:]
             elif (columnas[8].text.strip()[3] == ' '):
                 oponente = columnas[8].text.strip()[4:]
-            else:
-                oponente = columnas[8].text.strip()
+            else:"""
+            oponente = columnas[8].text.strip()
 
             # Agregar el marcador
             goles_favor = columnas[6].text.strip()[0]
@@ -210,14 +211,14 @@ def calcular_probabilidad_apuesta(equipo,pais,local_visitante, handicap):
     #print("Probando resultados:")
     #print(resultados)
     pesos = [0.6, 0.4]
-    if local_visitante.lower() == 'l':
+    if local_visitante.lower() == 'local':
         # Cálculo de la probabilidad ponderada de ganar
         probabilidad_ganar = (pesos[0] * probabilidades[0]) + (pesos[1] * probabilidades_local[0])
         # Cálculo de la probabilidad ponderada de empatar
         probabilidad_empatar = (pesos[0] * probabilidades[1]) + (pesos[1] * probabilidades_local[1])
         probabilidad = probabilidad_ganar + probabilidad_empatar
         print(f'La probabilidad de acertar al 1 X = {probabilidad*100}%')
-    elif local_visitante.lower() == 'v':
+    elif local_visitante.lower() == 'visitante':
         # Cálculo de la probabilidad ponderada de ganar
         probabilidad_ganar = (pesos[0] * probabilidades[0]) + (pesos[1] * probabilidades_visitante[0])
         # Cálculo de la probabilidad ponderada de empatar

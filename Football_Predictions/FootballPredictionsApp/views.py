@@ -9,7 +9,7 @@ def calcular_probabilidad(request):
         handicap = 0
         visitante = False
         
-        if local_visitante.lower() == 'v':
+        if local_visitante.lower() == 'visitante':
             visitante = True
             handicap = int(request.POST.get('handicap'))
 
