@@ -1,16 +1,20 @@
 /* Estilos generales */
+/*@import url('https://fonts.googleapis.com/css2?family=Ubuntu+Condensed&display=swap');*/
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@300;400&family=Roboto+Slab&family=Ubuntu+Condensed&display=swap');
+
 body {
-    background-color: #222;
-    color: #fff;
-    font-family: serif;
-  }
+  background-color: #222;
+  color: #fff;
+  /*font-family: 'Roboto Condensed', sans-serif;*/
+  font-family: 'Roboto Slab', serif;
+  /*font-family: 'Ubuntu Condensed', sans-serif;*/
+}
   
 h1 {
   font-size: 24px;
   text-align: center;
 }
   
-input[type="text"],
 input[type="number"] {
   width: 100%;
   padding: 10px;
@@ -26,6 +30,8 @@ button[type="submit"] {
   cursor: pointer;
   margin-top: 20px;
   width: 100%;
+  font-weight: 900;
+  border-radius: 5px
 }
 
 .button-group {
@@ -61,10 +67,60 @@ button[type="submit"] {
   width: 50%;
   border-radius: 0px 25px 25px 0px;
 }
+
+.equipos {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 10px;
+  border: solid;
+  border-radius: 5px;
+  grid-template-columns: 1fr 17% 1fr; /* Cambia el ancho de la primera columna aquí */
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 0px 10px 0px;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.equipo-visitante {
+  display: grid;
+  grid-template-rows: repeat(2, 1fr);
+  grid-gap: 5px;
+  padding: 10px 40px 10px 0px;
+}
+
+.equipo-local {
+  display: grid;
+  grid-template-rows: repeat(2, 1fr);
+  grid-gap: 5px;
+  padding: 10px 0px 10px 40px;
+}
+
+input[type="text"] {
+  width: 100%;
+  padding: 5px;
+  border: none;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.local_visitante {
+  text-align: center;
+  font-size: 20px;
+}
+
+.vs {
+  grid-row: span 2;
+  font-size: 30px;
+}
   
 /* Estilos específicos */
 form {
-  max-width: 400px;
+  max-width: 500px;
   margin: 0 auto;
 }
   
@@ -94,7 +150,15 @@ form {
 .estadisticas {
   display: inline-block;
   text-align: center;
-  margin: 10px;
-  font-size: 25px;
+  margin: -10px 30px 30px 30px;
+  font-size: 20px;
+}
+
+.local, .visitante {
+  border-style: solid;
+}
+
+.titulos {
+  margin: 17px 0px 0px 0px;
 }
   

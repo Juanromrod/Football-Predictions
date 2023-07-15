@@ -203,11 +203,12 @@ def calcular_probabilidad(resultados):
             e += 1
     return [v/10,e/10,d/10]
 
-def calcular_probabilidad_apuesta(equipo,pais,local_visitante, handicap):
+def calcular_probabilidad_apuesta(equipo,pais,local_visitante):
     probabilidad, probabilidad_handicap = 0, 0
     general, local, visitante, equipo = obtener_datos_equipo(equipo,pais)
     probabilidades, probabilidades_local, probabilidades_visitante = obtener_resultados(general,local,visitante)
     resultados = [probabilidades, probabilidades_local, probabilidades_visitante]
+    probabilidad_ganar, probabilidad_empatar, probabilidad_perder = 0, 0, 0
     #print("Probando resultados:")
     #print(resultados)
     pesos = [0.6, 0.4]
@@ -216,34 +217,135 @@ def calcular_probabilidad_apuesta(equipo,pais,local_visitante, handicap):
         probabilidad_ganar = (pesos[0] * probabilidades[0]) + (pesos[1] * probabilidades_local[0])
         # Cálculo de la probabilidad ponderada de empatar
         probabilidad_empatar = (pesos[0] * probabilidades[1]) + (pesos[1] * probabilidades_local[1])
-        probabilidad = probabilidad_ganar + probabilidad_empatar
-        print(f'La probabilidad de acertar al 1 X = {probabilidad*100}%')
-    elif local_visitante.lower() == 'visitante':
+        # Cálculo de la probabilidad ponderada de perder
+        probabilidad_perder = 1 - (probabilidad_ganar + probabilidad_empatar)
+        #print(f'La probabilidad de acertar al 1 X = {(probabilidad_ganar+probabilidad_empatar)*100}%')
+        probabilidad = [probabilidad_ganar, probabilidad_empatar, probabilidad_perder]
+        #print(resultados)
+        return probabilidad, equipo, resultados
+    else:
         # Cálculo de la probabilidad ponderada de ganar
         probabilidad_ganar = (pesos[0] * probabilidades[0]) + (pesos[1] * probabilidades_visitante[0])
         # Cálculo de la probabilidad ponderada de empatar
         probabilidad_empatar = (pesos[0] * probabilidades[1]) + (pesos[1] * probabilidades_visitante[1])
-        probabilidad = probabilidad_ganar + probabilidad_empatar
-        print(f'La probabilidad de acertar al X 2 = {probabilidad*100}%')
+        # Cálculo de la probabilidad ponderada de perder
+        probabilidad_perder = 1 - (probabilidad_ganar + probabilidad_empatar)
+        #print(f'La probabilidad de acertar al X 2 = {(probabilidad_ganar+probabilidad_empatar)*100}%')
         # Handicap
-        casos_favorables_general, casos_favorables_visitante = 0, 0
-        # Encontrando cuantos partidos se ganaron con ese handicap en los ultimos 10 partidos
-        if handicap > 0:
-            #print("General:")
-            for r in general:
-                #print(r)
-                if int(r[3])+handicap > int(r[4]):
-                    #print(f'Favorable {r[3]}+2 - {r[4]}')
-                    casos_favorables_general+=1
-            # Encontrando cuantos partidos se ganaron con ese handicap en los ultimos 10 partidos de visitante
-            #print("Visitante:")
-            for v in visitante:
-                #print(v)
-                if int(v[3])+handicap > int(v[4]):
-                    #print(f'Favorable {v[3]}+2 - {v[4]}')
-                    casos_favorables_visitante+=1
-            # Cálculo de la probabilidad ponderada de ganar con handicap
-            probabilidad_handicap = (pesos[1] * casos_favorables_general/len(general)) + (pesos[0] * casos_favorables_visitante/len(visitante))
-            print(f'La probabilidad de acertar con handicap de {handicap} = {probabilidad_handicap*100}%')
-    #print(resultados)
-    return probabilidad, probabilidad_handicap, equipo, resultados
+        probabilidad_handicap = calcular_handicap(general, visitante, pesos)        
+        print(f'La probabilidad de acertar con handicap de +2 = {probabilidad_handicap*100}%')
+        probabilidad = [probabilidad_ganar, probabilidad_empatar, probabilidad_perder]
+        #print(resultados)
+        return probabilidad, probabilidad_handicap, equipo, resultados
+
+def calcular_handicap(general, visitante, pesos):
+    handicap = 2
+    casos_favorables_general, casos_favorables_visitante = 0, 0
+    # Encontrando cuantos partidos se ganaron con ese handicap en los ultimos 10 partidos
+    #print("General:")
+    for r in general:
+        #print(r)
+        if int(r[3])+handicap > int(r[4]):
+            #print(f'Favorable {r[3]}+2 - {r[4]}')
+            casos_favorables_general+=1
+    # Encontrando cuantos partidos se ganaron con ese handicap en los ultimos 10 partidos de visitante
+    #print("Visitante:")
+    for v in visitante:
+        #print(v)
+        if int(v[3])+handicap > int(v[4]):
+            #print(f'Favorable {v[3]}+2 - {v[4]}')
+            casos_favorables_visitante+=1
+    # Cálculo de la probabilidad ponderada de ganar con handicap
+    probabilidad_handicap = (pesos[1] * casos_favorables_general/len(general)) + (pesos[0] * casos_favorables_visitante/len(visitante))
+    return probabilidad_handicap 
+
+# probabilidad = [probabilidad_ganar, probabilidad_empatar, probabilidad_perder]
+# probabilidad_handicap = number
+# equipo = string
+# resultados = [probabilidades, probabilidades_local, probabilidades_visitante]
+def calcular_doble_oportunidad(probabilidades):
+    # Calcula probabilidades de Doble Oportunidad
+    ganar_empatar = probabilidades[0]+probabilidades[1]
+    ganar_perder = probabilidades[0]+probabilidades[2]
+    empatar_perder = probabilidades[1]+probabilidades[2]
+    doble_oportunidad = [ganar_empatar, ganar_perder, empatar_perder]
+    # Encuentra la maxima probabilidad
+    max_probabilidad = max(doble_oportunidad)
+    indice = -1
+    rep = 0
+    # Comprueba si hay una misma probabilidad entre dos eventos de doble oportunidad y selecciona un priorizando empates y local
+    for i in doble_oportunidad:
+        if i == max_probabilidad:
+            rep += 1
+    if rep > 1:
+        if ganar_empatar == ganar_perder or ganar_empatar == empatar_perder:
+            indice = 0
+        elif ganar_perder == empatar_perder:
+            indice = 2
+        else:
+            indice = 1
+    else:
+        indice = doble_oportunidad.index(max_probabilidad)
+    return max_probabilidad, indice
+
+def calcular_resultado_probable (local, visitante):
+    # ganar_empatar = 0, ganar_perder = 1, empatar_perder = 2
+    mejor_prob_local = calcular_doble_oportunidad(local[0])
+    mejor_prob_visita = calcular_doble_oportunidad(visitante[0])
+    pronostico = "N/A"
+    if mejor_prob_local[1] == 0 and mejor_prob_visita[1] == 2:
+        pronostico = '1X'
+        print("Probabilidad Alta!")
+    elif mejor_prob_local[1] == 0 and mejor_prob_visita[1] == 0:
+        # Si el visitante ha sacado 3 victorias mas que el local o el promedio de goles anotados supera por 1 al del local el pronostico favorecera al visitante
+        if (visitante[0][0]-local[0][0]) > 0.2:
+            pronostico = 'X2'
+        else:
+            pronostico = '1X'
+    elif mejor_prob_local[1] == 0 and mejor_prob_visita[1] == 1:
+        if mejor_prob_visita > mejor_prob_local:
+            # Si el visitante ha ganado mas que el local
+            if visitante[0][2] > local[0][1]:
+                pronostico = 'X2'
+            else:
+                pronostico = '1X'
+        else:
+            pronostico = '1X'       
+    elif mejor_prob_local[1] == 1 and mejor_prob_visita[1] == 1:
+        pronostico = '12'
+    elif mejor_prob_local[1] == 1 and mejor_prob_visita[1] == 0:
+        if mejor_prob_visita > mejor_prob_local:
+            # Si el visitante ha ganado mas que el local
+            if visitante[0][2] > local[0][1]:
+                pronostico = 'X2'
+            else:
+                pronostico = '12'
+        else:
+            pronostico = '12'
+    elif mejor_prob_local[1] == 1 and mejor_prob_visita[1] == 2:
+        # Si el local gana mas de lo que pierde
+        if local[0][0] > local[0][2]:
+            pronostico = "1X"
+        # Si el visitante pierde mas de lo que empata
+        elif visitante[0][2] > visitante[0][1]:
+            pronostico = "12"
+        else:
+            pronostico = "X2"
+    elif mejor_prob_local[1] == 2 and mejor_prob_visita[1] == 0:
+        pronostico = "X2"
+        print("Probabilidad Alta!")
+    elif mejor_prob_local[1] == 2 and mejor_prob_visita[1] == 1:
+        # Si el visitante gana mas de lo que pierde
+        if visitante[0][0] > visitante[0][2]:
+            pronostico = "1X"
+        # Si el local pierde mas de lo que empata
+        elif local[0][2] > local[0][1]:
+            pronostico = "12"
+        else:
+            pronostico = "X2"
+    else:
+        if visitante[0][2] < local[0][2]:
+            pronostico = "X2"
+        else:
+            pronostico = "1X"
+    return pronostico
