@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .footballData import calcular_probabilidad_apuesta, calcular_resultado_probable
+from .footballData import calcular_probabilidad_apuesta, calcular_resultado_probable, resultado_exacto
 
 def calcular_probabilidad(request):
     if request.method == 'POST':
@@ -12,7 +12,14 @@ def calcular_probabilidad(request):
         visitante = calcular_probabilidad_apuesta(equipo2, pais2, 'visitante')
         probabilidad1, equipo1, resultados1 = local
         probabilidad2, probabilidad_handicap2, equipo2, resultados2 = visitante
+        resultado = resultado_exacto(local[0], visitante[0])
         pronostico = calcular_resultado_probable(local,visitante)
+        if resultado == "1":
+            resultado = equipo1
+        elif resultado == "X":
+            resultado = "Empate"
+        else:
+            resultado = equipo2
         probabilidad_handicap2 = round(probabilidad_handicap2 * 100,2)
         resultados_multiplicados1 = [[elemento * 100 if not isinstance(elemento, tuple) else elemento for elemento in sub_arreglo] for sub_arreglo in resultados1]
         resultados_multiplicados2 = [[elemento * 100 if not isinstance(elemento, tuple) else elemento for elemento in sub_arreglo] for sub_arreglo in resultados2]
@@ -27,6 +34,7 @@ def calcular_probabilidad(request):
             'resultados_local': resultados_multiplicados1,
             'resultados_visitante': resultados_multiplicados2,
             'pronostico': pronostico,
+            'resultado': resultado,
         }
 
         return render(request, 'FootballPredictionsApp/calcular_probabilidad.html', context)

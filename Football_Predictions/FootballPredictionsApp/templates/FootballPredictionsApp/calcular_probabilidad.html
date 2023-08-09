@@ -16,7 +16,7 @@
     <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}">
 </head>
 <body>
-    <h1>Calcular Probabilidad de Apuesta</h1>
+    <h1>Pronosticos de futbol</h1>
     <form method="post" action="{% url 'calcular_probabilidad' %}">
         {% csrf_token %}
         <div class="equipos">
@@ -49,7 +49,7 @@
 
     {% if pronostico %}
         <div class="pronostico">
-            <h1>PRONOSTICO:</h1>
+            <h1>PRONOSTICO: {{resultado}}</h1>
             {% if pronostico == 'X2' %}
                 <h2>Gana {{ visitante }} o Empata (X 2)</h2>
             {% elif pronostico == '1X' %}

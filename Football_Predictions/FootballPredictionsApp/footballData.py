@@ -1,5 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
+import numpy as np
+from scipy.stats import poisson
 
 def obtener_Liga(nombre_pais):
     print('Buscando equipo...')
@@ -157,14 +159,14 @@ def obtener_datos_equipo(nombre_equipo, nombre_pais):
 def obtener_resultados(resultados, resultados_local, resultados_visitante):
     probabilidades, probabilidades_local, probabilidades_visitante = [], [], []
     probabilidades = calcular_probabilidad(resultados)
-    probabilidades.append((calcular_goles(resultados)[0],calcular_goles(resultados)[0]/len(resultados)))
-    probabilidades.append((calcular_goles(resultados)[1],calcular_goles(resultados)[1]/len(resultados)))
+    probabilidades.append((calcular_goles(resultados)[0], round(calcular_goles(resultados)[0]/len(resultados),1)))
+    probabilidades.append((calcular_goles(resultados)[1],round(calcular_goles(resultados)[1]/len(resultados),1)))
     probabilidades_local = calcular_probabilidad(resultados_local)
-    probabilidades_local.append((calcular_goles(resultados_local)[0],calcular_goles(resultados_local)[0]/len(resultados_local)))
-    probabilidades_local.append((calcular_goles(resultados_local)[1],calcular_goles(resultados_local)[1]/len(resultados_local)))
+    probabilidades_local.append((calcular_goles(resultados_local)[0],round(calcular_goles(resultados_local)[0]/len(resultados_local),1)))
+    probabilidades_local.append((calcular_goles(resultados_local)[1],round(calcular_goles(resultados_local)[1]/len(resultados_local),1)))
     probabilidades_visitante = calcular_probabilidad(resultados_visitante)
-    probabilidades_visitante.append((calcular_goles(resultados_visitante)[0],calcular_goles(resultados_visitante)[0]/len(resultados_visitante)))
-    probabilidades_visitante.append((calcular_goles(resultados_visitante)[1],calcular_goles(resultados_visitante)[1]/len(resultados_visitante)))
+    probabilidades_visitante.append((calcular_goles(resultados_visitante)[0],round(calcular_goles(resultados_visitante)[0]/len(resultados_visitante),1)))
+    probabilidades_visitante.append((calcular_goles(resultados_visitante)[1],round(calcular_goles(resultados_visitante)[1]/len(resultados_visitante),1)))
     print(f'Resultados (Últimos 10 partidos):')
     print(f'Goles anotados: {probabilidades[3][0]} ({probabilidades[3][1]}) || Goles recibidos: {probabilidades[4][0]} ({probabilidades[4][1]})')
     print(f'Victoria: {probabilidades[0]*100}%')
@@ -296,56 +298,118 @@ def calcular_resultado_probable (local, visitante):
     if mejor_prob_local[1] == 0 and mejor_prob_visita[1] == 2:
         pronostico = '1X'
         print("Probabilidad Alta!")
+        print("Primero")
     elif mejor_prob_local[1] == 0 and mejor_prob_visita[1] == 0:
-        # Si el visitante ha sacado 3 victorias mas que el local o el promedio de goles anotados supera por 1 al del local el pronostico favorecera al visitante
+        # Si el visitante ha sacado 3 victorias mas que el local el pronostico favorecera al visitante
         if (visitante[0][0]-local[0][0]) > 0.2:
             pronostico = 'X2'
         else:
             pronostico = '1X'
+        print("Segundo")
     elif mejor_prob_local[1] == 0 and mejor_prob_visita[1] == 1:
-        if mejor_prob_visita > mejor_prob_local:
-            # Si el visitante ha ganado mas que el local
-            if visitante[0][2] > local[0][1]:
+        if mejor_prob_visita[0] > mejor_prob_local[0]:
+            # Si el visitante ha ganado mas que el local y el porcentaje de victorias es mayor al de derrotas
+            if visitante[0][0] > local[0][0] and visitante[0][0] > visitante[0][2]:
                 pronostico = 'X2'
             else:
                 pronostico = '1X'
         else:
-            pronostico = '1X'       
+            pronostico = '1X'
+        print("Tercero")     
     elif mejor_prob_local[1] == 1 and mejor_prob_visita[1] == 1:
-        pronostico = '12'
+        # Solo apoya al visitante si ha ganado mas veces que el local
+        if local[0][2] > local[0][0] and local[0][2] > visitante[0][2]:
+            pronostico = 'X2'
+        else:
+            pronostico = '1X'
+        print("Cuarto")
     elif mejor_prob_local[1] == 1 and mejor_prob_visita[1] == 0:
-        if mejor_prob_visita > mejor_prob_local:
-            # Si el visitante ha ganado mas que el local
-            if visitante[0][2] > local[0][1]:
+        if local[0][2] > 0.5:
+            pronostico = 'X2'
+        elif mejor_prob_visita[0] > mejor_prob_local[0]:
+            # Si el visitante ha ganado mas que el local y el porcentaje de victorias es mayor al de derrotas
+            if visitante[0][0] > local[0][0] and visitante[0][0] > visitante[0][2]:
                 pronostico = 'X2'
             else:
-                pronostico = '12'
+                pronostico = '1X'
         else:
-            pronostico = '12'
+            pronostico = '1X'
+        print("Quinto")
     elif mejor_prob_local[1] == 1 and mejor_prob_visita[1] == 2:
         # Si el local gana mas de lo que pierde
-        if local[0][0] > local[0][2]:
+        if local[0][0] >= local[0][2]:
             pronostico = "1X"
         # Si el visitante pierde mas de lo que empata
         elif visitante[0][2] > visitante[0][1]:
-            pronostico = "12"
+            pronostico = "1X"
         else:
             pronostico = "X2"
+        print("Sexto")
     elif mejor_prob_local[1] == 2 and mejor_prob_visita[1] == 0:
         pronostico = "X2"
         print("Probabilidad Alta!")
+        print("Septimo")
     elif mejor_prob_local[1] == 2 and mejor_prob_visita[1] == 1:
         # Si el visitante gana mas de lo que pierde
-        if visitante[0][0] > visitante[0][2]:
-            pronostico = "1X"
+        if visitante[0][0] >= visitante[0][2]:
+            pronostico = "X2"
         # Si el local pierde mas de lo que empata
         elif local[0][2] > local[0][1]:
-            pronostico = "12"
-        else:
             pronostico = "X2"
+        else:
+            pronostico = "1X"
+        print("Octavo")
     else:
+        # Si el visitante pierde menos que el local
         if visitante[0][2] < local[0][2]:
             pronostico = "X2"
         else:
             pronostico = "1X"
+        print("Noveno")
     return pronostico
+
+def prob_goles(goles_local, goles_visitante):
+    # Cálculo de los parámetros de la distribución Poisson
+    media_goles_local = np.mean(goles_local)
+    media_goles_visitante = np.mean(goles_visitante)
+
+    # Cálculo de las probabilidades de goles usando la distribución Poisson
+    probabilidades_local = poisson.pmf(goles_local, media_goles_local)
+    probabilidades_visitante = poisson.pmf(goles_visitante, media_goles_visitante)
+
+    return probabilidades_local, probabilidades_visitante
+
+def resultado_exacto(local,visitante):
+    resultado = "N/A"
+    prob = []
+    arreglo = []
+    arreglo.append((local[0]+visitante[2])/2)
+    arreglo.append((local[1]+visitante[1])/2)
+    arreglo.append((local[2]+visitante[0])/2)
+    print(arreglo)
+    max_prob = 0
+    for i in range(len(arreglo)):
+        if arreglo[i] > arreglo[max_prob]:
+            max_prob = i
+        elif arreglo[i] == arreglo[max_prob] and i > 0:
+            print("Hay dos probabilidades iguales")
+            prob.append(i)
+    prob.append(max_prob)
+    print(max_prob)
+    print(f"Probabilidades: {prob}")
+    if len(prob) == 1:
+        if prob[0] == 0:
+            resultado = "1"
+        elif prob[0] == 1:
+            resultado = "X"
+        else:
+            resultado = "2"
+    else:
+        if 1 in prob:
+            resultado = "X"
+        else:
+            if local[0] >= visitante[0]:
+                resultado = "1"
+            else:
+                resultado = "2"
+    return resultado
